@@ -1,5 +1,5 @@
-#include "dynamic_string.h"
-#include "arena.h"
+#include "../include/dynamic_string.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

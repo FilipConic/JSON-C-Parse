@@ -1,124 +1,11 @@
-#include "json_value.h"
-#include "arena.h"
-#include "dynamic_string.h"
+#include "../include/json_value.h"
 
 #include <ctype.h>
 #include <stdio.h>
 #include <math.h>
 
 #define is_whitespace(c) ((c) == '\n' || (c) == ' ' || (c) == '\t' || (c) == '\r')
-char json_parse_whitespace(String* str) {
-	char c = string_get_char(str);
-	while (is_whitespace(c) && c != '\0') {
-		c = string_get_char(str);
-	}
-	return c;
-}
-void json_parse_null(String* str, JsonValue* json) {
-	char null = string_get_char(str);
-	if (!null || null != 'u') {
-		fprintf(stderr, "ERROR: Unable to parse null string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-	null = string_get_char(str);
-	if (!null || null != 'l') {
-		fprintf(stderr, "ERROR: Unable to parse null string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-	null = string_get_char(str);
-	if (!null || null != 'l') {
-		fprintf(stderr, "ERROR: Unable to parse null string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
 
-	json->type = JsonNull;
-	json->val.empty = 0;
-}
-void json_parse_true(String* str, JsonValue* json) {
-	char true = string_get_char(str);
-	if (!true || true != 'r') {
-		fprintf(stderr, "ERROR: Unable to parse true string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-	true = string_get_char(str);
-	if (!true || true != 'u') {
-		fprintf(stderr, "ERROR: Unable to parse true string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-	true = string_get_char(str);
-	if (!true || true != 'e') {
-		fprintf(stderr, "ERROR: Unable to parse true string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-
-	json->type = JsonTrue;
-	json->val.empty = 0;
-}
-void json_parse_false(String* str, JsonValue* json) {
-	char false = string_get_char(str);
-	if (!false || false != 'a') {
-		fprintf(stderr, "ERROR: Unable to parse false string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-	false = string_get_char(str);
-	if (!false || false != 'l') {
-		fprintf(stderr, "ERROR: Unable to parse false string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-	false = string_get_char(str);
-	if (!false || false != 's') {
-		fprintf(stderr, "ERROR: Unable to parse false string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-	false = string_get_char(str);
-	if (!false || false != 'e') {
-		fprintf(stderr, "ERROR: Unable to parse false string at position %zu:\n", str->token_count);
-		for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
-			putc(str->buffer[i], stderr);
-		}
-		putc('\n', stderr);
-		return;
-	}
-
-	json->type = JsonFalse;
-	json->val.empty = 0;
-}
 void json_parse_number(String* str, JsonValue* json) {
 	enum NumberParseFST {
 		Error,
@@ -466,45 +353,130 @@ void json_parse_object(Arena* a, String* str, JsonValue* json) {
 		}
 	}
 }
+
 void json_parse(Arena* a, String* str, JsonValue* json) {
-	char read_c = 0;
-	
-	do {
-		if (is_whitespace(read_c)) {
-			read_c = json_parse_whitespace(str);
-		} else if (read_c == 'n') {
-			json_parse_null(str, json);
-			// printf("parsed null!\n");
-			return;
-		} else if (read_c == 't') {
-			json_parse_true(str, json);
-			// printf("parsed true!\n");
-			return;
-		} else if (read_c == 'f') {
-			json_parse_false(str, json);
-			// printf("parsed false!\n");
-			return;
-		} else if (isdigit(read_c) || read_c == '-') {
-			json_parse_number(str, json);
-			// printf("parsed number!\n");
-			return;
-		} else if (read_c == '\"') {
-			json_parse_string(a, str, json);
-			// printf("parsed string!\n");
-			return;
-		} else if (read_c == '[') {
-			json_parse_array(a, str, json);
-			// printf("parsed array!\n");
-			return;
-		} else if (read_c == '{') {
-			json_parse_object(a, str, json);
-			// printf("parsed object! pos: %zu, len: %zu\n", str->token_count, str->counter);
-			return;
-		} else { 
-			read_c = string_get_char(str);
+	enum ParseFST {
+		Error,
+		Start,
+		N,
+		Nu,
+		Nul,
+		Null,
+		T,
+		Tr,
+		Tru,
+		True,
+		F,
+		Fa,
+		Fal,
+		Fals,
+		False,
+		Quotes,
+		Num,
+		LeftSqBr,
+		LeftBr,
+		End,
+	};
+	const char fst[End][15] = {
+		//* \t  n  u  l  t  r  e  f  a  s  "  [  {  -num
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Error
+		{ 0, 1, 2, 0, 0, 6, 0, 0,10, 0, 0,15,17,18,16 }, // Start
+		{ 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // N
+		{ 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Nu
+		{ 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Nul
+		{ 0 }, // Null
+		{ 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0 }, // T
+		{ 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Tr
+		{ 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0 }, // Tru
+		{ 0 }, // True
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0,11, 0, 0, 0, 0, 0 }, // F
+		{ 0, 0, 0, 0,12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Fa
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,13, 0, 0, 0, 0 }, // Fal
+		{ 0, 0, 0, 0, 0, 0, 0,14, 0, 0, 0, 0, 0, 0, 0 }, // Fals
+		{ 0 }, // False
+		{ 0 }, // Quotes
+		{ 0 }, // Num
+		{ 0 }, // LeftSqBr
+		{ 0 }  // LeftBr
+	};
+
+	enum ParseFST curr = Start;
+	int type;
+	char c = 0;
+	while (curr != End) {
+		switch (c = string_get_char(str)) {
+			case '\t':
+			case ' ':
+			case '\r':
+			case '\n': type = 1; break;
+			case 'n': type = 2; break;
+			case 'u': type = 3; break;
+			case 'l': type = 4; break;
+			case 't': type = 5; break;
+			case 'r': type = 6; break;
+			case 'e': type = 7; break;
+			case 'f': type = 8; break;
+			case 'a': type = 9; break;
+			case 's': type = 10; break;
+			case '\"': type = 11; break;
+			case '[': type = 12; break;
+			case '{': type = 13; break;
+			case '-': case '0':
+			case '1': case '2': case '3':
+			case '4': case '5': case '6':
+			case '7': case '8': case '9': type = 14; break;
+			default: type = 0; break;
 		}
-	} while (read_c);
+		switch (curr = fst[curr][type]) {
+			case N: case Nu: case Nul:
+			case T: case Tr: case Tru:
+			case F: case Fa: case Fal: case Fals:
+			case Start: case End: break;
+			case Null:
+				json->type = JsonNull;
+				json->val.empty = 0;
+				curr = End;
+				break;
+			case True:
+				json->type = JsonTrue;
+				json->val.empty = 0;
+				curr = End;
+				break;
+			case False:
+				json->type = JsonFalse;
+				json->val.empty = 0;
+				curr = End;
+				break;
+			case Num:
+				json_parse_number(str, json);
+				curr = End;
+				break;
+			case Quotes:
+				json_parse_string(a, str, json);
+				curr = End;
+				break;
+			case LeftSqBr:
+				json_parse_array(a, str, json);
+				curr = End;
+				break;
+			case LeftBr:
+				json_parse_object(a, str, json);
+				curr = End;
+				break;
+			case Error:
+				fprintf(stderr, "ERROR: There was an error while trying to parse JSON at point %zu:\n", str->token_count);
+				for (size_t i = str->token_count; i < str->counter && i < str->token_count + 25; ++i) {
+					putc(str->buffer[i], stderr);
+				}
+				putc('\n', stderr);
+				json->type = JsonNull;
+				json->val.empty = 0;
+				return;
+		}
+	}
+	return;
 }
+void json_to_string(Arena* a, JsonValue* json, String* str);
 
 void json_move(JsonValue* dst, JsonValue* src) {
 	dst->type = src->type;

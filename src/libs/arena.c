@@ -1,4 +1,5 @@
-#include "arena.h"
+#include "../include/arena.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>

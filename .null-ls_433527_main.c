@@ -79,11 +79,11 @@ int main(int argc, char** argv) {
 	printf("parse done! space taken: %zu\n", a.taken);
 	
 	// print_json_val(&json);
-	// if (json.type == JsonObject) {
-	// 	JsonValue* found = bst_get_by_key_c(&a, json.val.object, "subscriptions");
-	// 	if (found)
-	// 		print_json_val(found);
-	// }
+	if (json.type == JsonObject) {
+		JsonValue* found = bst_get_by_key_c(&a, json.val.object, "subscriptions");
+		if (found)
+			print_json_val(found);
+	}
 
 	arena_free(&a);
 	return 0;

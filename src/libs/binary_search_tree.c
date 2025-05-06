@@ -1,5 +1,5 @@
-#include "arena.h"
-#include "json_value.h"
+#include "../include/arena.h"
+#include "../include/json_value.h"
 #include <stdlib.h>
 
 char bst_add(Arena* a, BinarySearchTree* bst, JsonValue* key, JsonValue* value) {
