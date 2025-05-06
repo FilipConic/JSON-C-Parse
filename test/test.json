@@ -1,0 +1,53 @@
+{
+  "id": 123456,
+  "username": "jdoe",
+  "email": "jdoe@example.com",
+  "profile": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "birthdate": "1990-05-15",
+    "bio": "Software developer and tech enthusiast.",
+    "location": {
+      "city": "San Francisco",
+      "state": "CA",
+      "country": "USA"
+    },
+    "social": {
+      "twitter": "@johndoe",
+      "github": "johndoe",
+      "linkedin": "john-doe"
+    }
+  },
+  "preferences": {
+    "theme": "dark",
+    "notifications": {
+      "email": true,
+      "sms": false,
+      "push": true
+    },
+    "language": "en-US"
+  },
+  "security": {
+    "2fa_enabled": true,
+    "login_history": [
+      {"timestamp": "2025-05-01T10:20:30Z", "ip": "192.168.1.1"},
+      {"timestamp": "2025-04-25T08:14:00Z", "ip": "192.168.1.2"}
+    ]
+  },
+  "activity": {
+    "last_login": "2025-05-01T10:20:30Z",
+    "recent_actions": [
+      {"type": "edit_profile", "timestamp": "2025-04-30T09:00:00Z"},
+      {"type": "change_password", "timestamp": "2025-04-28T11:45:10Z"}
+    ],
+    "tags": ["developer", "subscriber", "beta_user"]
+  },
+  "subscriptions": [
+    {
+      "name": "Pro Plan",
+      "start_date": "2024-01-01",
+      "renewal_date": "2025-01-01",
+      "features": ["API access", "Priority support", "Unlimited storage"]
+    }
+  ]
+}
