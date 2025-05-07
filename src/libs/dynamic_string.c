@@ -1,5 +1,6 @@
 #include "../include/dynamic_string.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,6 +45,55 @@ void string_append_slice(Arena* a, String* str, const StringSlice* slice) {
 	memcpy(str->buffer + str->counter, slice->buffer, slice->len);
 	str->counter += slice->len;
 	str->buffer[str->counter] = '\0';
+}
+void string_append_int(Arena* a, String* str, int num) {
+	size_t i = str->counter;
+	if (num == 0) {
+		string_push(a, str, '0');
+		return;
+	}
+	if (num < 0) {
+		++i;
+		string_push(a, str, '-');
+		num = -num;
+	}
+	while (num != 0) {
+		char n = num % 10;
+		num = (num - n) / 10;
+		string_push(a, str, n + '0');
+	}
+	for (size_t j = str->counter - 1; i < j; ++i, --j) {
+		str->buffer[i] ^= str->buffer[j];
+		str->buffer[j] ^= str->buffer[i];
+		str->buffer[i] ^= str->buffer[j];
+	}
+}
+void string_append_double_prec(Arena* a, String* str, double num, size_t precision) {
+	if (num < 0) {
+		string_push(a, str, '-');
+		num = -num;
+	}
+	if (num < 1e-5 || num > 1e9) {
+		int exp = (int)log10(num) - (num > 1e9 ? 0 : 1);
+		double work_num = num * pow(10, -exp);
+		
+		int whole_part = (int)floor(work_num);
+		work_num -= (double)whole_part;
+
+		string_append_int(a, str, whole_part);
+		string_push(a, str, '.');
+		string_append_int(a, str, (int)(work_num * pow(10, precision)));
+
+		string_push(a, str, 'e');
+		string_append_int(a, str, exp);
+	} else {
+		int whole_part = (int)floor(num);
+		num -= (double)whole_part;
+
+		string_append_int(a, str, whole_part);
+		string_push(a, str, '.');
+		string_append_int(a, str, (int)(num * pow(10, precision)));
+	}
 }
 void string_read_file(Arena* a, String* str, const char* file_path) {
 	FILE* file = fopen(file_path, "r");
