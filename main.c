@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "./src/include/json_value.h"
+#include "src/include/dynamic_string.h"
 
 void print_string_slice(StringSlice* slice) {
 	for (size_t i = 0; i < slice->len; ++i) {
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
 	String str = { 0 };
 	string_read_file(&a, &str, argv[1]);
 
-	// printf("%s\n", str.buffer);
+	printf("%s\n", str.buffer);
 	JsonValue json = { 0 };
 	str.token_count = 0;
 	json_parse(&a, &str, &json);
@@ -84,6 +85,10 @@ int main(int argc, char** argv) {
 	// 	if (found)
 	// 		print_json_val(found);
 	// }
+	
+	String test = { 0 };
+	json_to_string(&a, &json, &test);
+	printf("JSON:\n%s\n", test.buffer);
 
 	arena_free(&a);
 	return 0;

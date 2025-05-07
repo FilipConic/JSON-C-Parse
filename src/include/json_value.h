@@ -44,7 +44,8 @@ JsonValue* bst_get_by_key(BinarySearchTree* bst, const String* key);
 JsonValue* bst_get_by_key_c(Arena* a, BinarySearchTree* bst, const char* key);
 
 void json_parse(Arena* a, String* str, JsonValue* json);
-void json_to_string(Arena* a, JsonValue* json, String* str);
+void json_to_string_depth(Arena* a, JsonValue* json, String* str, int depth);
+#define json_to_string(a, json, str) json_to_string_depth(a, json, str, 0);
 void json_move(JsonValue* dst, JsonValue* src);
 
 #endif // JSON_VALUE_H

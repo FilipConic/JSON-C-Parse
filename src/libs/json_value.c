@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #define is_whitespace(c) ((c) == '\n' || (c) == ' ' || (c) == '\t' || (c) == '\r')
 
@@ -476,7 +477,84 @@ void json_parse(Arena* a, String* str, JsonValue* json) {
 	}
 	return;
 }
-void json_to_string(Arena* a, JsonValue* json, String* str);
+void bst_to_string(Arena* a, BinarySearchTree* bst, String* str, int depth) {
+	string_push(a, str, '\n');
+	for (int d = 0; d < depth; ++d) string_push(a, str, '\t');
+	json_to_string_depth(a, &bst->key, str, 0);
+	string_append_c_str(a, str, " : ");
+	json_to_string_depth(a, &bst->value, str, depth);
+	string_push(a, str, ',');
+
+	if (bst->left->nul) bst_to_string(a, bst->left, str, depth);
+	if (bst->right->nul) bst_to_string(a, bst->right, str, depth);
+}
+void json_to_string_depth(Arena* a, JsonValue* json, String* str, int depth) {
+	switch (json->type) {
+		case JsonNull:
+			string_append_c_str(a, str, "null");
+			break;
+		case JsonTrue:
+			string_append_c_str(a, str, "true");
+			break;	
+		case JsonFalse:
+			string_append_c_str(a, str, "false");
+			break;
+		case JsonNumber:
+			string_append_double(a, str, json->val.number);
+			break;
+		case JsonArray:
+			string_push(a, str, '[');
+			for (size_t i = 0; i < json->val.array.counter; ++i) {
+				if (!i) string_push(a, str, '\n');
+				for (int d = 0; d <= depth; ++d) {
+					string_push(a, str, '\t');
+				}
+				json_to_string_depth(a, &json->val.array.buffer[i], str, depth + 1);
+				if (i != json->val.array.counter - 1) {
+					string_append_c_str(a, str, ",\n");
+				} else {
+					string_push(a, str, '\n');
+				}
+			}
+			for (int d = 0; d < depth; ++d) {
+				string_push(a, str, '\t');
+			}
+			string_push(a, str, ']');
+			break;
+		case JsonString:
+			string_push(a, str, '\"');
+			for (size_t i = 0; i < json->val.string.counter; ++i) {
+				char c = json->val.string.buffer[i];
+				
+				switch (c) {
+					case '\b': string_append_c_str(a, str, "\\b"); break;
+					case '\n': string_append_c_str(a, str, "\\n"); break;
+					case '\f': string_append_c_str(a, str, "\\f"); break;
+					case '\r': string_append_c_str(a, str, "\\r"); break;
+					case '\t': string_append_c_str(a, str, "\\t"); break;
+					case '\\': string_append_c_str(a, str, "\\\\"); break;
+					case '\"': string_append_c_str(a, str, "\\\""); break;
+					default: string_push(a, str, c); break;
+				}
+			}
+			string_push(a, str, '\"');
+			break;
+		case JsonObject:
+			string_push(a, str, '{');
+			if (json->val.object->nul) {
+				bst_to_string(a, json->val.object, str, depth + 1);
+			}
+			if (json->val.object->nul) {
+				--str->counter;
+				string_push(a, str, '\n');
+				for (int d = 0; d < depth; ++d) {
+					string_push(a, str, '\t');
+				}
+			}
+			string_push(a, str, '}');
+			break;
+	}
+}
 
 void json_move(JsonValue* dst, JsonValue* src) {
 	dst->type = src->type;
