@@ -5,8 +5,6 @@
 #include <math.h>
 #include <string.h>
 
-#define is_whitespace(c) ((c) == '\n' || (c) == ' ' || (c) == '\t' || (c) == '\r')
-
 void json_parse_number(String* str, JsonValue* json) {
 	enum NumberParseFST {
 		Error,
@@ -554,6 +552,18 @@ void json_to_string_depth(Arena* a, JsonValue* json, String* str, int depth) {
 			string_push(a, str, '}');
 			break;
 	}
+}
+void* json_get_value(JsonValue* json) {
+	switch (json->type) {
+		case JsonTrue:
+		case JsonFalse:
+		case JsonNull:   return &(json->val.empty);
+		case JsonNumber: return &(json->val.number);
+		case JsonString: return &(json->val.string);
+		case JsonArray:  return &(json->val.array);
+		case JsonObject: return json->val.object;
+	}
+	return NULL;
 }
 
 void json_move(JsonValue* dst, JsonValue* src) {
