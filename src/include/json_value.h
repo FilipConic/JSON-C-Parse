@@ -49,21 +49,21 @@ void json_to_string_depth(Arena* a, JsonValue* json, String* str, int depth);
 #define json_string_append_true(a, str) do {\
 	JsonValue json = { 0 }; \
 	json.type = JsonTrue; \
-	json_to_string_depth(a, json, str, 0); \
+	json_to_string_depth(a, &json, str, 0); \
 } while (0)
-#define json_false_append_true(a, str) do {\
+#define json_string_append_false(a, str) do {\
 	JsonValue json = { 0 }; \
 	json.type = JsonFalse; \
-	json_to_string_depth(a, json, str, 0); \
+	json_to_string_depth(a, &json, str, 0); \
 } while (0)
 void* json_get_value(JsonValue* json);
 #define json_object_get(a, json, json_ret, str) do { \
 	if ((json)->type != JsonObject) { \
 		fprintf(stderr, "ERROR (LINE %d): Expected a JSON object!\n", __LINE__); \
 	} \
-	json_ret = bst_get_by_key_c(a, json->val.object, str); \
+	json_ret = bst_get_by_key_c(a, (json)->val.object, str); \
 	if (!json_ret) { \
-		fprintf(stderr, "ERROR (LINE %d): There is no value with the key [%s]!\n"); \
+		fprintf(stderr, "ERROR (LINE %d): There is no value with the key [%s]!\n", __LINE__, str); \
 	} \
 } while (0)
 

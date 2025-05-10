@@ -1,5 +1,7 @@
 #include "../include/dynamic_string.h"
 
+#include <assert.h>
+#include <stdarg.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,12 +14,20 @@ void expand_string(Arena* a, String* str) {
 		str->buffer = (char*)arena_realloc(a, str->buffer, str->capacity, str->capacity * 1.5);
 		str->capacity = (size_t)(str->capacity * 1.5);
 	} else {
-		str->buffer = (char*)arena_alloc(a, STRING_INIT_LEN);
-		str->capacity = STRING_INIT_LEN;
+		string_reserve(a, str, STRING_INIT_LEN);
 		str->counter = 0;
 	}
 }
 
+void string_reserve(Arena* a, String *str, size_t num) {
+	if (str->buffer) {
+		str->buffer = (char*)arena_realloc(a, str->buffer, str->capacity, num);
+		str->buffer[num - 1] = '\0';
+	} else {
+		str->buffer = (char*)arena_alloc(a, num);
+	}
+	str->capacity = num;
+}
 void string_push(Arena* a, String* str, char c) {
 	if (str->counter + 1 >= str->capacity)
 		expand_string(a, str);
@@ -46,7 +56,89 @@ void string_append_slice(Arena* a, String* str, const StringSlice* slice) {
 	str->counter += slice->len;
 	str->buffer[str->counter] = '\0';
 }
-void string_append_int(Arena* a, String* str, int num) {
+void string_append_format(Arena* a, String* str, const char* format, ...) {
+	size_t n = 0;
+	char prev_c = 0;
+	for (size_t i = 0; i < str->counter; ++i) {
+		if (str->buffer[i] == '%') {
+			if (prev_c != '%') {
+				++n;
+				prev_c = str->buffer[i];
+			} else {
+				prev_c = 0;
+			}
+		}
+	}
+	va_list args;
+	va_start(args, format);
+	
+	char percent_found = 0, is_long = 0;
+	for (size_t i = 0; format[i] != '\0'; ++i) {
+		if (percent_found) {
+			switch (format[i]) {
+				case 'l':
+				case 'L':
+					if (is_long == 0 || is_long == 1) {
+						++is_long;
+					} else {
+						fprintf(stderr, "ERROR: You can\'t have more than two Ls given as a format for a number!\n");
+						assert(0);
+					}
+					break;
+				case 'd':
+				case 'i':
+				case 'u': {
+					long long int num = is_long ? va_arg(args, long long int) : va_arg(args, int);
+					string_append_int(a, str, num);
+					is_long = 0;
+					percent_found = 0;
+					break;
+				}
+				case 'f':
+				case 'F':
+				case 'e':
+				case 'E': {
+					double num = va_arg(args, double);
+					string_append_double(a, str, num);
+					is_long = 0;
+					percent_found = 0;
+					break;
+				}
+				case 'c': {
+					if (is_long) {
+						fprintf(stderr, "ERROR: You can\'t turn char into a long!\n");
+						assert(0);
+					}
+					char c = (char)va_arg(args, int);
+					string_push(a, str, c);
+					percent_found = 0;
+					break;
+				}
+				case 's': {
+					if (is_long) {
+						fprintf(stderr, "ERROR: You can\'t turn string into a long!\n");
+						assert(0);
+					}
+					char* s = va_arg(args, char*);
+					string_append_c_str(a, str, s);
+					percent_found = 0;
+					break;
+				}
+				default:
+					fprintf(stderr, "ERROR: Character [%c] not supported!\n", format[i]);
+					assert(0);
+			}
+		} else {
+			if (format[i] == '%') {
+				percent_found = 1;
+			} else {
+				string_push(a, str, format[i]);
+			}
+		}
+	}
+	va_end(args);
+}
+void string_append_int(Arena* a, String* str, long long int num) {
 	size_t i = str->counter;
 	if (num == 0) {
 		string_push(a, str, '0');

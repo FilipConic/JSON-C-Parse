@@ -15,13 +15,15 @@ typedef struct {
 	size_t len;
 } StringSlice;
 
+void string_reserve(Arena* a, String* str, size_t num);
 void string_push(Arena* a, String* str, char c);
 void string_append(Arena* a, String* str1, const String* str2);
 void string_append_c_str(Arena* a, String* str, const char* c_str);
 void string_append_slice(Arena* a, String* str, const StringSlice* slice);
-void string_append_int(Arena* a, String* str, int num);
+void string_append_int(Arena* a, String* str, long long int num);
 void string_append_double_prec(Arena* a, String* str, double num, size_t precision);
 #define string_append_double(a, str, num) string_append_double_prec(a, str, num, 5);
+void string_append_format(Arena* a, String* str, const char* format, ...);
 void string_read_file(Arena* a, String* str, const char* file_path);
 
 #define string_get_slice(str, beginning, length) (StringSlice){ .buffer = (str)->buffer + beginning, .len = length }

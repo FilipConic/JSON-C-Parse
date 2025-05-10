@@ -35,7 +35,11 @@ void* arena_realloc(Arena* a, void* src, size_t prev_size, size_t size) {
 	if (!ret) {
 		return NULL;
 	}
-	memcpy(ret, src, prev_size);
+	if (size < prev_size) {
+		memcpy(ret, src, size);
+	} else {
+		memcpy(ret, src, prev_size);
+	}
 
 	return ret;
 }
