@@ -137,6 +137,17 @@ void string_append_format(Arena* a, String* str, const char* format, ...) {
 					sub_n();
 					break;
 				}
+				case 'S': {
+					if (is_long) {
+						fprintf(stderr, "ERROR: You can\'t turn string into a long!\n");
+						assert(0);
+					}
+					String s = va_arg(args, String);
+					string_append(a, str, &s);
+					percent_found = 0;
+					sub_n();
+					break;
+				}
 				default:
 					fprintf(stderr, "ERROR: Character [%c] not supported!\n", format[i]);
 					assert(0);
