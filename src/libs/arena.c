@@ -32,6 +32,10 @@ void* arena_alloc(Arena* a, size_t size) {
 }
 void* arena_realloc(Arena* a, void* src, size_t prev_size, size_t size) {
 	void* ret = arena_alloc(a, size);
+
+	if (src == NULL) {
+		return ret;
+	}
 	if (!ret) {
 		return NULL;
 	}
