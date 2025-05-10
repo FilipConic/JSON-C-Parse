@@ -57,25 +57,34 @@ void string_append_slice(Arena* a, String* str, const StringSlice* slice) {
 	str->buffer[str->counter] = '\0';
 }
 void string_append_format(Arena* a, String* str, const char* format, ...) {
-	size_t n = 0;
-	char prev_c = 0;
-	for (size_t i = 0; i < str->counter; ++i) {
-		if (str->buffer[i] == '%') {
-			if (prev_c != '%') {
+	int n = 0;
+	for (size_t i = 0; format[i]; ++i) {
+		if (format[i] == '%') {
+			if (format[i + 1] != '%') {
 				++n;
-				prev_c = str->buffer[i];
-			} else {
-				prev_c = 0;
 			}
 		}
 	}
+
 	va_list args;
 	va_start(args, format);
 	
-	char percent_found = 0, is_long = 0;
-	for (size_t i = 0; format[i] != '\0'; ++i) {
+	char percent_found = 0;
+	char is_long = 0;
+	for (size_t i = 0; format[i]; ++i) {
 		if (percent_found) {
+#define sub_n() do { \
+				if (--n < 0) { \
+					fprintf(stderr, "ERROR: Too many parameters given to variadic function string_append_format!\n"); \
+					assert(0); \
+				} \
+			} while (0)
 			switch (format[i]) {
+				case '%':
+					string_push(a, str, '%');
+					percent_found = 0;
+					sub_n();
+					break;
 				case 'l':
 				case 'L':
 					if (is_long == 0 || is_long == 1) {
@@ -92,6 +101,7 @@ void string_append_format(Arena* a, String* str, const char* format, ...) {
 					string_append_int(a, str, num);
 					is_long = 0;
 					percent_found = 0;
+					sub_n();
 					break;
 				}
 				case 'f':
@@ -102,6 +112,7 @@ void string_append_format(Arena* a, String* str, const char* format, ...) {
 					string_append_double(a, str, num);
 					is_long = 0;
 					percent_found = 0;
+					sub_n();
 					break;
 				}
 				case 'c': {
@@ -112,6 +123,7 @@ void string_append_format(Arena* a, String* str, const char* format, ...) {
 					char c = (char)va_arg(args, int);
 					string_push(a, str, c);
 					percent_found = 0;
+					sub_n();
 					break;
 				}
 				case 's': {
@@ -122,6 +134,7 @@ void string_append_format(Arena* a, String* str, const char* format, ...) {
 					char* s = va_arg(args, char*);
 					string_append_c_str(a, str, s);
 					percent_found = 0;
+					sub_n();
 					break;
 				}
 				default:
@@ -137,6 +150,10 @@ void string_append_format(Arena* a, String* str, const char* format, ...) {
 		}
 	}
 	va_end(args);
+
+	if (n != 0) {
+		fprintf(stderr, "ERROR: Not all %% used in variadic function string_append_format!\n");
+	}
 }
 void string_append_int(Arena* a, String* str, long long int num) {
 	size_t i = str->counter;
